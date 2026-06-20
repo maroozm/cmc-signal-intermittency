@@ -1,16 +1,10 @@
-# CMC Injection Workflow in This Directory
+## CMC Injection Workflow in This Directory
 
 This document records the methodology, code choices, references, outputs, and caveats for the **CMC-style signal injection** work implemented in this directory.
 
-It is intended to serve three purposes:
-
-1. as a **lab notebook / reproducibility record** for future use,
-2. as **technical documentation** for anyone reopening this work later,
-3. as **publication support material** for the injection methodology.
-
 ---
 
-## 1. Goal
+### 1. Goal
 
 The goal of this work is to construct a **hybrid background + critical-signal sample** inspired by the CMC/UrQMD methodology used in the intermittency literature, especially:
 
@@ -25,9 +19,9 @@ In this directory, that idea is adapted to an **EPOS event tree**.
 
 ---
 
-## 2. Conceptual background
+### 2. Conceptual background
 
-### 2.1 What is the CMC signal?
+#### 2.1 What is the CMC signal?
 
 The CMC model is used to generate **self-similar, clustered critical fluctuations**. This is done through a **Lévy random walk** whose step-size distribution follows
 
@@ -46,7 +40,7 @@ The generated point cloud is intended to carry critical-like scale-invariant str
 
 ---
 
-### 2.2 In what space is the signal generated?
+#### 2.2 In what space is the signal generated?
 
 A key methodological point — and a deliberate departure from the published papers:
 
@@ -65,7 +59,7 @@ This choice was made because the scaled factorial moments (SFMs) in this workflo
 - \(\phi\) is **wrapped** to \([0, 2\pi)\) after each step — this handles the circular periodicity of the azimuthal angle
 - Steps that would place \(|\eta| \geq \eta_{\max}\) are **rejected** (walk stays inside the acceptance)
 
-#### Step range parameters
+##### Step range parameters
 
 \[
 r_{\max} = 2 \times \eta_{\max} = 1.0
@@ -78,7 +72,7 @@ The maximum step covers the full \(\eta\) window in one step, and the ratio \(r_
 
 ---
 
-### 2.3 What does the "2%" or "1.7%" mean in the papers?
+#### 2.3 What does the "2%" or "1.7%" mean in the papers?
 
 The papers define a replacement ratio
 
@@ -104,45 +98,7 @@ In this directory, the currently implemented value is:
 
 ---
 
-## 3. Files in this directory
-
-### Main injection macro
-
-- `ep.cmc.injection.C`
-
-This is the current primary ROOT macro implementing the injection workflow.
-
-### Input file list
-
-- `files.txt`
-
-Currently contains the absolute path to the EPOS ROOT file to be processed.
-
----
-
-## 4. Input data assumptions
-
-The macro assumes the ROOT file contains a tree named:
-
-- `teposevent0`
-
-with branches:
-
-- `np`
-- `bim`
-- `px`
-- `py`
-- `pz`
-- `id`
-- `ist`
-
-The particle identity and charge logic are taken from:
-
-- `/Users/solus/mc.codebase/eventforge/Common/epos_particle_info.h`
-
----
-
-## 5. Current implementation in `ep.cmc.injection.C`
+### 5. Current implementation in `ep.cmc.injection.C`
 
 ### 5.1 Event reading
 
@@ -158,7 +114,7 @@ This dynamic sizing was introduced to avoid an earlier segmentation fault caused
 
 ---
 
-### 5.2 Accepted-track selection
+#### 5.2 Accepted-track selection
 
 Tracks are accepted if they satisfy:
 
@@ -185,7 +141,7 @@ The helper functions are:
 
 ---
 
-### 5.3 CMC candidate generation
+#### 5.3 CMC candidate generation
 
 The CMC pool is generated using:
 
@@ -217,7 +173,7 @@ Current parameter values:
 
 ---
 
-### 5.4 Number of replacements per event
+#### 5.4 Number of replacements per event
 
 The number of requested replacements is sampled from a binomial distribution:
 
@@ -229,7 +185,7 @@ This means the actual per-event replacement fraction fluctuates around the targe
 
 ---
 
-### 5.5 Injection / matching logic
+#### 5.5 Injection / matching logic
 
 For each event:
 
@@ -254,7 +210,7 @@ p_z^{\rm new} = p_T^{\rm orig} \sinh(\eta_{\rm CMC})
 
 ---
 
-### 5.6 What is actually replaced?
+#### 5.6 What is actually replaced?
 
 In the current implementation:
 
@@ -267,23 +223,23 @@ while the following are **kept unchanged**:
 - `id`
 - `ist`
 
-#### Interpretation
+##### Interpretation
 
 This means the code injects a **critical-like angular structure** while preserving the transverse momentum magnitude of each replaced track. The particle's position in \((\eta, \phi)\) space is moved to the CMC-assigned location, while its \(p_T\) and particle identity remain those of the original EPOS track.
 
 The `pz` write-back is essential — without it, the \(\eta\) of the injected particle would not change and the clustering would remain invisible in the \((\eta, \phi)\) analysis.
 
-#### Caveat
+##### Caveat
 
 This is **not** a full dynamical re-generation of particles. It is a controlled angular-structure embedding procedure that preserves the pT spectrum exactly.
 
 ---
 
-## 6. Current outputs
+### 6. Current outputs
 
 The macro writes an injected tree output and a QA ROOT file.
 
-### 6.1 Injected tree output
+#### 6.1 Injected tree output
 
 The output filename is derived from the input filename by appending:
 
@@ -301,7 +257,7 @@ Important:
 
 - because the input file path from `files.txt` is absolute, the injected output tree file is written alongside that input path, not necessarily into `./`
 
-### 6.2 QA ROOT output
+#### 6.2 QA ROOT output
 
 The macro also writes a QA ROOT output named with the pattern:
 
@@ -320,7 +276,7 @@ This file is created in the working directory and contains:
 
 ---
 
-## 7. Scaled factorial moment computation
+### 7. Scaled factorial moment computation
 
 The SFMs are computed in **2D \((\eta, \phi)\) space**.
 
@@ -343,27 +299,11 @@ where \(n_i\) is the multiplicity in the \(i\)-th cell and the average is over e
 
 ---
 
-## 8. Why `λ = 2%` was chosen
+### 9. References consulted for this implementation
 
-This was chosen because:
+#### Primary references
 
-- the earlier hybrid UrQMD+CMC paper (`arXiv:2209.07135`) argues that **1–2%** signal fractions are relevant to STAR-like weak intermittency signals
-- this is within the physically motivated weak-signal range
-
-By contrast:
-
-- the later machine-learning paper (`arXiv:2412.06151`) often uses **5%** and **10%**
-- these larger values are easier to visualize/classify and are useful for method demonstrations
-
-The code parameter can be changed to other values as needed.
-
----
-
-## 9. References consulted for this implementation
-
-### Primary references
-
-#### 1. Rui Wang et al.
+##### 1. Rui Wang et al.
 
 **Identifying weak critical fluctuations of intermittency in heavy-ion collisions with topological machine learning**  
 `arXiv:2412.06151`  
@@ -377,7 +317,7 @@ Why it matters here:
 
 ---
 
-#### 2. Jin Wu et al.
+##### 2. Jin Wu et al.
 
 **Intermittency of charged particles in the hybrid UrQMD+CMC model at energies available at the BNL Relativistic Heavy Ion Collider**  
 `arXiv:2209.07135`  
@@ -392,7 +332,7 @@ Why it matters here:
 
 ---
 
-#### 3. Jin Wu et al.
+##### 3. Jin Wu et al.
 
 **Probing QCD critical fluctuations from intermittency analysis in relativistic heavy-ion collisions**  
 `arXiv:1901.11193`  
@@ -405,27 +345,27 @@ Why it matters here:
 
 ---
 
-## 10. Current limitations / caveats
+### 10. Current limitations / caveats
 
-### 10.1 `px`, `py`, `pz` are replaced; `id`, `ist` are kept
+#### 10.1 `px`, `py`, `pz` are replaced; `id`, `ist` are kept
 
 The injected tracks get new angular coordinates but keep their original particle identity and pT magnitude.
 
-### 10.2 The signal is generated in \((\eta, \phi)\), not \((p_x, p_y)\) as in the published papers
+#### 10.2 The signal is generated in \((\eta, \phi)\), not \((p_x, p_y)\) as in the published papers
 
 This is a deliberate methodological choice. The published UrQMD+CMC papers generate the Lévy walk in transverse momentum space and compute SFMs there. This implementation generates and analyses in \((\eta, \phi)\) instead. The Lévy walk's self-similar properties are coordinate-independent, but the intermittency indices and scaling may differ quantitatively from the published values.
 
-### 10.3 The method is a practical implementation, not the authors' exact private production code
+#### 10.3 The method is a practical implementation, not the authors' exact private production code
 
 It is based on the published methodology and adapted to the available EPOS tree structure.
 
-### 10.4 No mixed-event subtraction is performed in the macro
+#### 10.4 No mixed-event subtraction is performed in the macro
 
 The macro computes raw \(F_q(M)\) both before and after injection. The correlator \(\Delta F_q(M) = F_q^{\rm data} - F_q^{\rm mixed}\) used in the published analyses is not computed here — that subtraction must be performed downstream.
 
 ---
 
-## 11. Suggested publication narrative
+### 11. Suggested publication narrative
 
 If this work is written up, a reasonable methodology section could say:
 
@@ -441,55 +381,3 @@ If this work is written up, a reasonable methodology section could say:
 6. All three momentum components `px`, `py`, `pz` were updated; `id` and `ist` were left unchanged.
 
 ---
-
-## 12. Practical run notes
-
-The macro is intended to be run from this directory via ROOT, e.g.
-
-```bash
-root -l -b -q ep.cmc.injection.C
-```
-
-The current output summary printed by the macro includes:
-
-- input file
-- output injected file
-- QA file
-- number of accepted events
-- number of injected events
-- total accepted tracks
-- total requested replacements
-- total successful injections
-
----
-
-## 13. Evolution history
-
-This implementation has evolved significantly:
-
-1. **Initial version**: Lévy walk in \((p_x, p_y)\) space with pT-tolerance matching (`|ΔpT| < 0.2 GeV/c`), multi-pass pool generation, and `TMath::Factorial`-based SFM computation. Only `px`, `py` were replaced.
-
-2. **Current version**: Lévy walk in \((\eta, \phi)\) space with exact pT preservation, sequential pool assignment (no matching needed), iterative falling-factorial SFM computation, and all three momentum components (`px`, `py`, `pz`) are replaced.
-
-Key bugs fixed during development:
-
-- **Dead eta cut**: `return ist == 8` before the eta cut made the pseudorapidity selection unreachable
-- **Off-by-one in SFM normalization**: `SetBinContent(_M, ...)` wrote to underflow bin instead of data bins
-- **Factorial overflow**: `TMath::Factorial(n)/TMath::Factorial(n-q)` overflowed for large bin occupancy, silently discarding events with the strongest CMC signal
-- **φ histogram range mismatch**: QA histograms had range `[-3.2, 3.2]` but `getPhi` returns `[0, 2π)`
-
----
-
-## 14. Final summary
-
-What has been implemented here is a **CMC-inspired weak-signal embedding procedure for EPOS events**.
-
-The essential logic is:
-
-- select accepted charged tracks in \((\eta, \phi, p_T)\)
-- generate clustered CMC-like candidates in \((\eta, \phi)\) space via a Lévy random walk
-- replace a small fraction of accepted tracks by assigning them CMC angular coordinates while preserving their original \(p_T\)
-- reconstruct all three momentum components from the new \((\eta, \phi)\) and original \(p_T\)
-- write out the modified event tree and companion QA output
-
-This is a practical and physically motivated implementation of the CMC injection idea in the current EPOS-based workflow.
