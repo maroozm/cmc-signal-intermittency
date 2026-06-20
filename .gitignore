@@ -1,0 +1,7 @@
+# Ignore everything by default
+*
+
+# Whitelist files to keep
+!README.md
+!ep_cmc_injection.cpp
+!.gitignore
