@@ -35,8 +35,7 @@
 #include "/Users/solus/mc.codebase/eventforge/Common/epos_particle_info.h"
 
 namespace {
-
-constexpr Double_t _lam = 0.0015;
+constexpr Double_t _lam = 0.001;
 constexpr Double_t _eta_max = 0.5;
 constexpr Double_t _pt_min = 0.2;
 constexpr Double_t _pt_max = 3.0;

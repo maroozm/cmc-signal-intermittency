@@ -364,20 +364,3 @@ It is based on the published methodology and adapted to the available EPOS tree 
 The macro computes raw \(F_q(M)\) both before and after injection. The correlator \(\Delta F_q(M) = F_q^{\rm data} - F_q^{\rm mixed}\) used in the published analyses is not computed here — that subtraction must be performed downstream.
 
 ---
-
-### 11. Suggested publication narrative
-
-If this work is written up, a reasonable methodology section could say:
-
-1. EPOS events were used as the baseline background sample.
-2. Charged particles were selected within:
-   - `|eta| < 0.5`
-   - `0.2 < pT < 3.0 GeV/c`
-3. A weak critical-like signal was generated in pseudorapidity–azimuth space \((\eta, \phi)\) using a Lévy random walk with:
-   - `mu = 1/6`
-   - `r_min/r_max = 10^-7`
-4. For each event, a number of accepted particles sampled from a binomial distribution with target replacement ratio `λ` were chosen for replacement.
-5. The momentum of each replaced track was reconstructed from the CMC-assigned \((\eta, \phi)\) and the track's original \(p_T\), preserving the transverse momentum spectrum exactly.
-6. All three momentum components `px`, `py`, `pz` were updated; `id` and `ist` were left unchanged.
-
----

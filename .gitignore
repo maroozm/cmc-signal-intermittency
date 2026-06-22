@@ -5,3 +5,4 @@
 !README.md
 !ep_cmc_injection.cpp
 !.gitignore
+!train_topo_pointnet.py
